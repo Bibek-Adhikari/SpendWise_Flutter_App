@@ -1,21 +1,19 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
 
-FLUTTER_VERSION="3.24.5"
-FLUTTER_DIR="${TMPDIR:-/tmp}/flutter-${FLUTTER_VERSION}"
-
-if ! command -v flutter >/dev/null 2>&1; then
-  archive="${TMPDIR:-/tmp}/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz"
-  if [[ ! -x "${FLUTTER_DIR}/bin/flutter" ]]; then
-    curl --fail --location --silent --show-error \
-      "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" \
-      --output "${archive}"
-    mkdir -p "${FLUTTER_DIR}"
-    tar -xJf "${archive}" --strip-components=1 -C "${FLUTTER_DIR}"
-  fi
-  export PATH="${FLUTTER_DIR}/bin:${PATH}"
+# Install Flutter if not available
+if ! command -v flutter &> /dev/null
+then
+    echo "Flutter not found, installing..."
+    # Download Flutter SDK
+    git clone https://github.com/flutter/flutter.git -b stable ~/flutter
+    export PATH="$PATH:$HOME/flutter/bin"
 fi
 
-flutter config --no-analytics
+# Get dependencies
 flutter pub get
+
+# Build the web app
 flutter build web --release
+
+# Verify build output
+ls -la build/web/
